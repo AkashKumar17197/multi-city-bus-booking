@@ -1,12 +1,13 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/header/Header';
-import Home from './pages/Home';
-import PNRStatus from './pages/PNRStatus';
-import CancelTicket from './pages/CancelTicket';
-import FoodOrder from './pages/FoodOrder';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Header from "./components/header/Header";
+import Home from "./pages/Home";
+import PNRStatus from "./pages/PNRStatus";
+import CancelTicket from "./pages/CancelTicket";
+import FoodOrder from "./pages/FoodOrder";
+import Search from "./pages/Search";
 
-import { LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/pnr-status" element={<PNRStatus />} />
           <Route path="/cancel-ticket" element={<CancelTicket />} />
           <Route path="/food-order" element={<FoodOrder />} />
+          <Route path="/search" element={<Search />} />
         </Routes>
       </Router>
     </LocalizationProvider>
