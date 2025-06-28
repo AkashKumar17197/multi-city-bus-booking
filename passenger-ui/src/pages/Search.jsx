@@ -45,8 +45,6 @@ function Search() {
     );
   };
 
-
-
   const timingOptions = [
     "Morning 5 to 11",
     "Afternoon 12 to 3",
@@ -72,42 +70,40 @@ function Search() {
 
   const modifySearch = () => {
     if (from && to && date) {
-          const formattedDate = dayjs(date).format("YYYY-MM-DD");
-          alert(`${from?.city} to ${to?.city} on ${formattedDate}`);
-          navigate(`/search?from=${encodeURIComponent(from.city)}&to=${encodeURIComponent(to.city)}&date=${formattedDate}&flag=${true}`);
-        } else {
-          alert("Please fill all fields");
-        }
+      const formattedDate = dayjs(date).format("YYYY-MM-DD");
+      alert(`${from?.city} to ${to?.city} on ${formattedDate}`);
+      navigate(
+        `/search?from=${encodeURIComponent(from.city)}&to=${encodeURIComponent(
+          to.city
+        )}&date=${formattedDate}&flag=${true}`
+      );
+    } else {
+      alert("Please fill all fields");
+    }
   };
 
   useEffect(() => {
-    if (fromParam)
-    {
-      const fromCity = cityOptions.find((option) => option.city.toLowerCase() === fromParam.toLowerCase());4
+    if (fromParam) {
+      const fromCity = cityOptions.find(
+        (option) => option.city.toLowerCase() === fromParam.toLowerCase()
+      );
+      4;
 
-      if (fromCity)
-        setFrom(fromCity);
+      if (fromCity) setFrom(fromCity);
     }
 
-    if (toParam)
-    {
-      const toCity = cityOptions.find((option) => option.city.toLowerCase() === toParam.toLowerCase());
-      if (toCity)
-        setTo(toCity);
+    if (toParam) {
+      const toCity = cityOptions.find(
+        (option) => option.city.toLowerCase() === toParam.toLowerCase()
+      );
+      if (toCity) setTo(toCity);
     }
 
-    if (dateParam)
-    {
+    if (dateParam) {
       const parsedDate = dayjs(dateParam);
-      if (parsedDate.isValid())
-        setDate(parsedDate);
+      if (parsedDate.isValid()) setDate(parsedDate);
     }
   }, [fromParam, toParam, dateParam]);
-
-
-
-  
-
 
   return (
     <Box sx={{ backgroundColor: "#f2f2f2", minHeight: "100vh", py: 4 }}>
@@ -116,39 +112,39 @@ function Search() {
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <Autocomplete
-                              options={cityOptions}
-                              value={from}
-                              getOptionLabel={(option) => option.city}
-                              filterOptions={filterCities}
-                              onChange={(e, newValue) => setFrom(newValue)}
-                              popupIcon={null} // <-- This removes the dropdown arrow icon
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Origination"
-                                  variant="outlined"
-                                  sx={{ width: "200px"}}
-                                />
-                              )}
-                            />
+                options={cityOptions}
+                value={from}
+                getOptionLabel={(option) => option.city}
+                filterOptions={filterCities}
+                onChange={(e, newValue) => setFrom(newValue)}
+                popupIcon={null} // <-- This removes the dropdown arrow icon
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Origination"
+                    variant="outlined"
+                    sx={{ width: "200px" }}
+                  />
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={4}>
               <Autocomplete
-                              options={cityOptions}
-                              value={to}
-                              getOptionLabel={(option) => option.city}
-                              filterOptions={filterCities}
-                              onChange={(e, newValue) => setTo(newValue)}
-                              popupIcon={null} // <-- This removes the dropdown arrow icon
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  label="Destination"
-                                  variant="outlined"
-                                  sx={{ width: "200px"}}
-                                />
-                              )}
-                            />
+                options={cityOptions}
+                value={to}
+                getOptionLabel={(option) => option.city}
+                filterOptions={filterCities}
+                onChange={(e, newValue) => setTo(newValue)}
+                popupIcon={null} // <-- This removes the dropdown arrow icon
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Destination"
+                    variant="outlined"
+                    sx={{ width: "200px" }}
+                  />
+                )}
+              />
             </Grid>
             <Grid item xs={12} sm={4}>
               <DatePicker
@@ -218,7 +214,9 @@ function Search() {
 
           <Grid item xs={12} md={8}>
             <Paper elevation={3} sx={{ p: 4, mb: 3, width: "100%" }}>
-              <Typography sx={{mt: 2}}>Available Buses from {fromParam} to {toParam} on {dateParam}</Typography>
+              <Typography sx={{ mt: 2 }}>
+                Available Buses from {fromParam} to {toParam} on {dateParam}
+              </Typography>
             </Paper>
 
             {busResult.map((bus, index) => (
@@ -231,7 +229,7 @@ function Search() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  width: "100%"
+                  width: "100%",
                 }}
               >
                 <Box>
@@ -269,7 +267,11 @@ function Search() {
                   </Typography>
                 </Box>
 
-                <Button variant="contained" color="success">
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={() => navigate("/booking", { state: { bus } })}
+                >
                   Book Now
                 </Button>
               </Paper>

@@ -21,6 +21,7 @@ function Header() {
 
   const location = useLocation();
   const isSearchPage = location.pathname === "/search";
+  const isBookingPage = location.pathname === "/booking";
 
   return (
     <Box>
@@ -111,24 +112,25 @@ function Header() {
         </Box>
       </Box>
 
-      {!isSearchPage && (
-        <AppBar position="static" sx={{ backgroundColor: "green" }}>
-          <Toolbar variant="dense">
-            <Button color="inherit" component={Link} to="/">
-              Home
-            </Button>
-            <Button color="inherit" component={Link} to="/pnr-status">
-              PNR Status
-            </Button>
-            <Button color="inherit" component={Link} to="/cancel-ticket">
-              Cancel Ticket
-            </Button>
-            <Button color="inherit" component={Link} to="/food-order">
-              Food Order
-            </Button>
-          </Toolbar>
-        </AppBar>
-      )}
+      {!isSearchPage ||
+        (!isBookingPage && (
+          <AppBar position="static" sx={{ backgroundColor: "green" }}>
+            <Toolbar variant="dense">
+              <Button color="inherit" component={Link} to="/">
+                Home
+              </Button>
+              <Button color="inherit" component={Link} to="/pnr-status">
+                PNR Status
+              </Button>
+              <Button color="inherit" component={Link} to="/cancel-ticket">
+                Cancel Ticket
+              </Button>
+              <Button color="inherit" component={Link} to="/food-order">
+                Food Order
+              </Button>
+            </Toolbar>
+          </AppBar>
+        ))}
     </Box>
   );
 }
