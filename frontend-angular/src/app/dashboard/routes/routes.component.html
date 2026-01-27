@@ -1,0 +1,178 @@
+<!-- 🔷 POD 1: Route Table -->
+<div *ngIf="!showForm">
+  <h2>Routes</h2>
+  <button mat-raised-button color="primary" (click)="onAddRoute()">
+    Add Route
+  </button>
+
+  <table mat-table [dataSource]="routes" class="mat-elevation-z8 full-width">
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef>ID</th>
+      <td mat-cell *matCellDef="let route">{{ route.bus_id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="type">
+      <th mat-header-cell *matHeaderCellDef>Bus Type</th>
+      <td mat-cell *matCellDef="let route">{{ route.bus_type }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="origin">
+      <th mat-header-cell *matHeaderCellDef>Origin</th>
+      <td mat-cell *matCellDef="let route">{{ route.origination }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="destination">
+      <th mat-header-cell *matHeaderCellDef>Destination</th>
+      <td mat-cell *matCellDef="let route">{{ route.destination }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="via">
+      <th mat-header-cell *matHeaderCellDef>Via</th>
+      <td mat-cell *matCellDef="let route">{{ getVia(route) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="services">
+      <th mat-header-cell *matHeaderCellDef>No of Services</th>
+      <td mat-cell *matCellDef="let route">{{ route.single?.length || 0 }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let route">
+        <button mat-icon-button color="primary" (click)="onEditRoute(route)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="onDeleteRoute(route)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</div>
+
+<!-- 🔶 POD 2: Add/Edit Route Form -->
+<div *ngIf="showForm">
+  <h2>{{ editingRoute ? "Edit Route" : "Add Route" }}</h2>
+
+  <form [formGroup]="routeForm">
+    <ng-container *ngIf="editingRoute">
+      <mat-form-field class="full-width">
+        <input
+          matInput
+          placeholder="Bus ID"
+          formControlName="bus_id"
+          [disabled]="true"
+        />
+      </mat-form-field>
+    </ng-container>
+
+    <mat-form-field class="full-width">
+      <mat-select placeholder="Origination" formControlName="origination">
+        <mat-option *ngFor="let city of cities" [value]="city">{{
+          city
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-select placeholder="Destination" formControlName="destination">
+        <mat-option *ngFor="let city of cities" [value]="city">{{
+          city
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-select placeholder="Bus Type" formControlName="bus_type">
+        <mat-option *ngFor="let type of busTypes" [value]="type">{{
+          type
+        }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- 🔁 Single Route Stations -->
+<h3>Forward Route</h3>
+<div formArrayName="single">
+  <div
+    *ngFor="let station of single.controls; let i = index"
+    [formGroupName]="i"
+    class="station-row"
+  >
+    <mat-form-field class="full-width">
+      <input matInput placeholder="S.No" formControlName="sno" [disabled]="true" />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-select placeholder="City" formControlName="city">
+        <mat-option *ngFor="let city of cities" [value]="city">
+          {{ city }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <input matInput placeholder="Duration" formControlName="duration" />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <input matInput type="number" placeholder="KM" formControlName="km" />
+    </mat-form-field>
+
+    <button mat-icon-button *ngIf="i > 0" (click)="onRemoveStation('single', i)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>
+<button mat-button (click)="onAddStation('single')">+ Add Station</button>
+
+<!-- 🔁 Return Route -->
+<h3>Return Route</h3>
+<button mat-stroked-button (click)="onGenerateReturnStations()">
+  Generate Return from Forward
+</button>
+
+<div formArrayName="return">
+  <div
+    *ngFor="let station of return.controls; let i = index"
+    [formGroupName]="i"
+    class="station-row"
+  >
+    <mat-form-field class="full-width">
+      <input matInput placeholder="S.No" formControlName="sno" [disabled]="true" />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <mat-select placeholder="City" formControlName="city">
+        <mat-option *ngFor="let city of cities" [value]="city">
+          {{ city }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <input matInput placeholder="Duration" formControlName="duration" />
+    </mat-form-field>
+
+    <mat-form-field class="full-width">
+      <input matInput type="number" placeholder="KM" formControlName="km" />
+    </mat-form-field>
+
+    <button mat-icon-button *ngIf="i > 0" (click)="onRemoveStation('return', i)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+</div>
+<button mat-button (click)="onAddStation('return')">+ Add Station</button>
+
+    <!-- 🔘 Actions -->
+    <div class="form-actions">
+      <button mat-raised-button color="primary" (click)="onSaveRoute()">
+        Save
+      </button>
+      <button mat-button type="button" (click)="onCancel()">Cancel</button>
+    </div>
+  </form>
+</div>

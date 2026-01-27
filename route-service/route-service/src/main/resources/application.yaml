@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: route-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/route_service_bdb
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8081
+
+
+
+
