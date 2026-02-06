@@ -1,7 +1,6 @@
 package com.busbooking.route_service.controller;
 
-import com.busbooking.route_service.dto.RouteRequestDTO;
-import com.busbooking.route_service.dto.RouteResponseDTO;
+import com.busbooking.route_service.dto.*;
 import com.busbooking.route_service.entity.RouteEntity;
 import com.busbooking.route_service.service.RouteService;
 import org.springframework.http.ResponseEntity;
@@ -43,5 +42,22 @@ public class RouteController {
             @PathVariable Long routeId) {
         routeService.deleteRoute(routeId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<RouteSearchResponse> searchRoutes(@RequestBody RouteSearchRequest request) {
+        return ResponseEntity.ok(
+                routeService.searchRoutes(request.getFromCities(), request.getToCities())
+        );
+    }
+
+    @GetMapping("/{routeId}/stops")
+    public ResponseEntity<List<RouteStopView>> getRouteStops(
+            @PathVariable Long routeId,
+            @RequestParam Integer direction) {
+
+        return ResponseEntity.ok(
+                routeService.getRouteStopsWithFare(routeId, direction)
+        );
     }
 }

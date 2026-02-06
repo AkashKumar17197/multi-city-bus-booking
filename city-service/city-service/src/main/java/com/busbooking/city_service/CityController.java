@@ -1,5 +1,6 @@
 package com.busbooking.city_service;
 
+import com.busbooking.city_service.dto.CityResponse;
 import com.busbooking.city_service.entity.CityEntity;
 import com.busbooking.city_service.service.CityService;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,15 @@ public class CityController {
     public ResponseEntity<Void> deleteCity(@PathVariable Long id) {
         cityService.deleteCity(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Step 1 endpoint
+    @GetMapping("/route")
+    public ResponseEntity<CityResponse> getCitiesForRoute(
+            @RequestParam("fromCityId") Long fromCityId,
+            @RequestParam("toCityId") Long toCityId) {
+
+        CityResponse response = cityService.getCitiesForRoute(fromCityId, toCityId);
+        return ResponseEntity.ok(response);
     }
 }

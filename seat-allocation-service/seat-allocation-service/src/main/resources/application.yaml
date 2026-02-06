@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: seat-allocation-service
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/seat_allocation_service_bdb
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+server:
+  port: 8086

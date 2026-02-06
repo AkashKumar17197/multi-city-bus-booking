@@ -15,33 +15,37 @@ import {
   Typography,
   Autocomplete,
 } from "@mui/material";
-
-import dayjs from "dayjs"; // Ensure this is installed: npm install dayjs
 import { DatePicker } from "@mui/x-date-pickers";
-import { cityOptions } from "../data/cities";
-import { busResult } from "../data/buses";
+import dayjs from "dayjs";
+import axios from "axios";
 
 function Search() {
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
 
+  // ⬇️ THESE ARE CITY IDs (string)
   const fromParam = params.get("from");
   const toParam = params.get("to");
   const dateParam = params.get("date");
 
-  const [from, setFrom] = useState(null);
-  const [to, setTo] = useState(null);
+  const [cityOptions, setCityOptions] = useState([]);
+
+  const [from, setFrom] = useState(null); // city object
+  const [to, setTo] = useState(null);     // city object
   const [date, setDate] = useState(null);
 
-  /*const cityOptions = [
-    { id: 1, city: "Chennai" },
-  ];*/
+  const [buses, setBuses] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  /* ------------------ FILTER HELPERS ------------------ */
 
   const filterCities = (options, { inputValue }) => {
-    if (inputValue.length < 1) return [];
+    if (!inputValue) return [];
     return options.filter((option) =>
-      option.city.toLowerCase().includes(inputValue.toLowerCase())
+      (option.city + option.code)
+        .toLowerCase()
+        .includes(inputValue.toLowerCase())
     );
   };
 
@@ -52,125 +56,140 @@ function Search() {
     "Night 8 to 11",
     "Midnight",
   ];
-  const busTypes = ["Seater", "Seater Cum Sleeper", "Sleeper", "Double Decker"];
 
-  /*const busResult = [
-    {
-      operator: "SRM Travels",
-      departure: "05:00",
-      arrival: "11:00",
-      fare: "535",
-      busCode: "CNBBNG0500",
-      route: "Via VLR, KGI, HSR",
-      restStops: 2,
-      availableSeats: 30,
-      windowSeats: 10,
-      type: "Double Decker",
-    },];*/
+  const busTypes = [
+    "Seater",
+    "Seater Cum Sleeper",
+    "Sleeper",
+    "Double Decker",
+  ];
+
+  /* ------------------ FETCH CITIES ------------------ */
+
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/cities")
+      .then((res) => {
+        const mapped = res.data
+          .filter((c) => c.status === "LIVE")
+          .map((c) => ({
+            id: c.cityId,
+            city: c.cityName,
+            code: c.cityCode,
+            parentCityId: c.parentCityId,
+          }));
+
+        setCityOptions(mapped);
+      })
+      .catch((err) => console.error("City fetch error", err));
+  }, []);
+
+  /* ------------------ URL → FORM SYNC (CITY ID BASED) ------------------ */
+
+  useEffect(() => {
+    if (!cityOptions.length) return;
+
+    if (fromParam) {
+      const city = cityOptions.find(
+        (c) => c.id === Number(fromParam)
+      );
+      if (city) setFrom(city);
+    }
+
+    if (toParam) {
+      const city = cityOptions.find(
+        (c) => c.id === Number(toParam)
+      );
+      if (city) setTo(city);
+    }
+
+    if (dateParam) {
+      const parsed = dayjs(dateParam);
+      if (parsed.isValid()) setDate(parsed);
+    }
+  }, [fromParam, toParam, dateParam, cityOptions]);
+
+  /* ------------------ MODIFY SEARCH (KEEP CITY ID) ------------------ */
 
   const modifySearch = () => {
     if (from && to && date) {
-      const formattedDate = dayjs(date).format("YYYY-MM-DD");
-      alert(`${from?.city} to ${to?.city} on ${formattedDate}`);
       navigate(
-        `/search?from=${encodeURIComponent(from.city)}&to=${encodeURIComponent(
-          to.city
-        )}&date=${formattedDate}&flag=${true}`
+        `/search?from=${from.id}&to=${to.id}&date=${dayjs(date).format(
+          "YYYY-MM-DD"
+        )}`
       );
     } else {
       alert("Please fill all fields");
     }
   };
 
+  /* ------------------ FETCH BUSES ------------------ */
+
   useEffect(() => {
-    if (fromParam) {
-      const fromCity = cityOptions.find(
-        (option) => option.city.toLowerCase() === fromParam.toLowerCase()
-      );
-      4;
+    if (!fromParam || !toParam || !dateParam) return;
 
-      if (fromCity) setFrom(fromCity);
-    }
+    setLoading(true);
 
-    if (toParam) {
-      const toCity = cityOptions.find(
-        (option) => option.city.toLowerCase() === toParam.toLowerCase()
-      );
-      if (toCity) setTo(toCity);
-    }
-
-    if (dateParam) {
-      const parsedDate = dayjs(dateParam);
-      if (parsedDate.isValid()) setDate(parsedDate);
-    }
+    axios
+      .get("http://localhost:8090/api/bus-search/search", {
+        params: {
+          fromCityId: fromParam,
+          toCityId: toParam,
+          date: dateParam,
+        },
+      })
+      .then((res) => setBuses(res.data))
+      .catch((err) => console.error("Bus search error:", err))
+      .finally(() => setLoading(false));
   }, [fromParam, toParam, dateParam]);
+
+  /* ------------------ UI ------------------ */
 
   return (
     <Box sx={{ backgroundColor: "#f2f2f2", minHeight: "100vh", py: 4 }}>
-      <Container sx={{ width: "100vw" }}>
+      <Container>
+        {/* SEARCH BAR */}
         <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
               <Autocomplete
                 options={cityOptions}
                 value={from}
-                getOptionLabel={(option) => option.city}
+                getOptionLabel={(o) => o.city + " - " + o.code}
                 filterOptions={filterCities}
-                onChange={(e, newValue) => setFrom(newValue)}
-                popupIcon={null} // <-- This removes the dropdown arrow icon
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Origination"
-                    variant="outlined"
-                    sx={{ width: "200px" }}
-                  />
+                onChange={(e, v) => setFrom(v)}
+                renderInput={(p) => (
+                  <TextField {...p} label="Origination" />
                 )}
               />
             </Grid>
+
             <Grid item xs={12} sm={4}>
               <Autocomplete
                 options={cityOptions}
                 value={to}
-                getOptionLabel={(option) => option.city}
+                getOptionLabel={(o) => o.city + " - " + o.code}
                 filterOptions={filterCities}
-                onChange={(e, newValue) => setTo(newValue)}
-                popupIcon={null} // <-- This removes the dropdown arrow icon
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Destination"
-                    variant="outlined"
-                    sx={{ width: "200px" }}
-                  />
+                onChange={(e, v) => setTo(v)}
+                renderInput={(p) => (
+                  <TextField {...p} label="Destination" />
                 )}
               />
             </Grid>
+
             <Grid item xs={12} sm={4}>
               <DatePicker
                 label="Journey Date"
                 value={date}
-                onChange={(newValue) => setDate(newValue)}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    size: "medium",
-                  },
-                }}
+                onChange={setDate}
+                slotProps={{ textField: { fullWidth: true } }}
               />
             </Grid>
-            <Grid item xs={12} sm={4}>
+
+            <Grid item xs={12}>
               <Button
                 variant="contained"
                 color="success"
-                fullWidth
-                sx={{
-                  height: "56px", // match MUI default input height
-                  borderRadius: 1,
-                  fontWeight: "bold",
-                  boxShadow: 2,
-                  width: "200px",
-                }}
                 onClick={modifySearch}
               >
                 MODIFY SEARCH
@@ -178,102 +197,91 @@ function Search() {
             </Grid>
           </Grid>
         </Paper>
+
         <Grid container spacing={3}>
+          {/* FILTERS */}
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} sx={{ p: 3, backgroundColor: "#c1f0c1" }}>
-              <Typography variant="h6" gutterBottom>
-                Filters
-              </Typography>
-              <Typography variant="subtitle1" sx={{ mt: 2 }}>
-                Timings
-              </Typography>
+            <Paper sx={{ p: 3 }}>
+              <Typography variant="h6">Filters</Typography>
+
               <FormGroup>
-                {timingOptions.map((label) => (
+                {timingOptions.map((t) => (
                   <FormControlLabel
-                    key={label}
-                    control={<Checkbox defaultChecked />}
-                    label={label}
+                    key={t}
+                    control={<Checkbox />}
+                    label={t}
                   />
                 ))}
               </FormGroup>
+
               <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle1">Fare</Typography>
-              <Slider defaultValue={30} min={0} max={100} />
+
+              <Typography>Fare</Typography>
+              <Slider min={0} max={3000} />
+
               <Divider sx={{ my: 2 }} />
+
               <FormGroup>
-                {busTypes.map((label) => (
+                {busTypes.map((t) => (
                   <FormControlLabel
-                    key={label}
+                    key={t}
                     control={<Checkbox />}
-                    label={label}
+                    label={t}
                   />
                 ))}
               </FormGroup>
             </Paper>
           </Grid>
 
+          {/* BUS LIST */}
           <Grid item xs={12} md={8}>
-            <Paper elevation={3} sx={{ p: 4, mb: 3, width: "100%" }}>
-              <Typography sx={{ mt: 2 }}>
-                Available Buses from {fromParam} to {toParam} on {dateParam}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography>
+                Available Buses from {from?.city} to {to?.city} on {dateParam}
               </Typography>
             </Paper>
 
-            {busResult.map((bus, index) => (
-              <Paper
-                key={index}
-                elevation={2}
-                sx={{
-                  p: 2,
-                  mb: 3,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  width: "100%",
-                }}
-              >
-                <Box>
-                  <Typography variant="subtitle2" fontWeight="bold">
-                    {bus.busCode || "CNBBNG0600"}
-                  </Typography>
-                  <Typography sx={{ mt: 1 }}>
-                    {bus.departure} - {bus.arrival}
-                  </Typography>
-                </Box>
+            {loading && <Typography>Loading buses...</Typography>}
 
-                <Box>
-                  <Typography>{bus.type}</Typography>
-                  <Typography fontSize={14} color="text.secondary">
-                    {bus.route}
-                  </Typography>
-                  <Typography fontSize={14} color="text.secondary">
-                    Rest Stops: {bus.restStops}
-                  </Typography>
-                </Box>
+            {buses.map((bus, index) => (
+              <Paper key={index} sx={{ p: 2, mb: 3 }}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={3}>
+                    <Typography fontWeight="bold">{bus.busCode}</Typography>
+                    <Typography>
+                      {bus.departure} - {bus.arrival}
+                    </Typography>
+                  </Grid>
 
-                <Box textAlign="center">
-                  <Typography>Seats Available</Typography>
-                  <Typography fontWeight="bold">
-                    {bus.availableSeats || 30}
-                  </Typography>
-                  <Typography fontSize={12} color="text.secondary">
-                    Window Seats: {bus.windowSeats || 10}
-                  </Typography>
-                </Box>
+                  <Grid item xs={3}>
+                    <Typography>{bus.type}</Typography>
+                    <Typography fontSize={13}>
+                      Duration: {bus.duration}
+                    </Typography>
+                  </Grid>
 
-                <Box>
-                  <Typography fontWeight="bold" fontSize={16}>
-                    Rs. {bus.fare}
-                  </Typography>
-                </Box>
+                  <Grid item xs={3}>
+                    <Typography>
+                      Seats: <b>{bus.availableSeats}</b>
+                    </Typography>
+                    <Typography fontSize={13}>
+                      Window: {bus.windowSeats}
+                    </Typography>
+                  </Grid>
 
-                <Button
-                  variant="contained"
-                  color="success"
-                  onClick={() => navigate("/booking", { state: { bus } })}
-                >
-                  Book Now
-                </Button>
+                  <Grid item xs={3}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      fullWidth
+                      onClick={() =>
+                        navigate("/booking", { state: { bus } })
+                      }
+                    >
+                      Book Now
+                    </Button>
+                  </Grid>
+                </Grid>
               </Paper>
             ))}
           </Grid>

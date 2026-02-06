@@ -1,8 +1,6 @@
 package com.busbooking.route_service.service;
 
-import com.busbooking.route_service.dto.RouteRequestDTO;
-import com.busbooking.route_service.dto.RouteResponseDTO;
-import com.busbooking.route_service.dto.RouteStopDTO;
+import com.busbooking.route_service.dto.*;
 import com.busbooking.route_service.entity.RouteEntity;
 import com.busbooking.route_service.entity.RouteStopEntity;
 import com.busbooking.route_service.repository.RouteRepository;
@@ -136,5 +134,16 @@ public class RouteServiceImpl implements RouteService {
             list.add(dto);
         }
         return list;
+    }
+
+    @Override
+    public RouteSearchResponse searchRoutes(List<Long> fromCities, List<Long> toCities) {
+        List<Long> routeIds = routeStopRepository.findRouteIdsByFromAndToCities(fromCities, toCities);
+        return new RouteSearchResponse(routeIds);
+    }
+
+    @Override
+    public List<RouteStopView> getRouteStopsWithFare(Long routeId, Integer direction) {
+        return routeStopRepository.findRouteStopsWithFare(routeId, direction);
     }
 }

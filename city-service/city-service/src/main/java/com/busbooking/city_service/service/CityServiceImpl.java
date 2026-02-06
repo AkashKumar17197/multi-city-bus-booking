@@ -1,11 +1,14 @@
 package com.busbooking.city_service.service;
 
+import com.busbooking.city_service.dto.CityResponse;
 import com.busbooking.city_service.entity.CityEntity;
 import com.busbooking.city_service.repository.CityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CityServiceImpl implements CityService {
@@ -53,5 +56,12 @@ public class CityServiceImpl implements CityService {
         CityEntity city = getCityById(cityId);
         city.setStatus("DELETED");
         cityRepository.save(city);
+    }
+
+    public CityResponse getCitiesForRoute(Long fromCityId, Long toCityId) {
+        List<Long> fromCities = cityRepository.findAllCitiesByParent(fromCityId);
+        List<Long> toCities = cityRepository.findAllCitiesByParent(toCityId);
+
+        return new CityResponse(fromCities, toCities);
     }
 }

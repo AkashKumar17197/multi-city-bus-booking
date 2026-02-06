@@ -1,19 +1,25 @@
 package com.busbooking.schedule_service.controller;
 
+import com.busbooking.schedule_service.dto.ScheduleSearchResponse;
 import com.busbooking.schedule_service.dto.ServiceRequestDTO;
 import com.busbooking.schedule_service.dto.ServiceResponseDTO;
+import com.busbooking.schedule_service.repository.ServiceScheduleRepository;
 import com.busbooking.schedule_service.service.ServiceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/services")
 public class ServiceController {
 
     private final ServiceService serviceService;
+    private final ServiceScheduleRepository scheduleRepository;
 
-    public ServiceController(ServiceService serviceService) {
+    public ServiceController(ServiceService serviceService, ServiceScheduleRepository scheduleRepository) {
         this.serviceService = serviceService;
+        this.scheduleRepository = scheduleRepository;
     }
 
     // ================= CREATE =================
@@ -47,5 +53,19 @@ public class ServiceController {
 
         serviceService.deleteService(serviceId);
         return ResponseEntity.ok("Service deleted successfully");
+    }
+
+    /**
+     * SEARCH API (used by searchbuses service)
+     *
+     * Example:
+     * GET /api/schedules/search?routeId=6&directionSeq=2
+     */
+    @GetMapping("/search")
+    public List<ScheduleSearchResponse> searchSchedules(
+            @RequestParam Long routeId,
+            @RequestParam Integer directionSeq) {
+
+        return scheduleRepository.findSchedulesForSearch(routeId, directionSeq);
     }
 }

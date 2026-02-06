@@ -15,16 +15,17 @@ import {
   Modal,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dayjs from "dayjs"; // Ensure this is installed: npm install dayjs
 import { useNavigate } from "react-router-dom";
 import { cityOptions } from "../data/cities";
+import axios from "axios";
 
 function Home() {
   const [from, setFrom] = useState(null);
   const [to, setTo] = useState(null);
   const [date, setDate] = useState(null);
-
+  const [cityOptions, setCityOptions] = useState([]);
   const navigate = useNavigate();
 
   /*const cityOptions = [
@@ -49,25 +50,23 @@ function Home() {
   const handleSearch = () => {
     if (from && to && date) {
       const formattedDate = dayjs(date).format("YYYY-MM-DD");
-      //navigate(`/buses?from=${from}&to=${to}&date=${formattedDate}`);
-      //navigate(`/search?from=${encodeURIComponent(from.city)}&to=${encodeURIComponent(to.city)}&date=${formattedDate}`);
       navigate(
-        `/search?from=${encodeURIComponent(from.city)}&to=${encodeURIComponent(
-          to.city
-        )}&date=${formattedDate}&flag=${true}`
+        `/search?from=${encodeURIComponent(from.id)}&to=${encodeURIComponent(
+          to.id
+        )}&date=${formattedDate}&flag=true`
       );
-      //alert(`${from?.city} to ${to?.city} on ${formattedDate}`);
     } else {
       alert("Please fill all fields");
     }
   };
 
   const filterCities = (options, { inputValue }) => {
-    if (inputValue.length < 1) return [];
-    return options.filter((option) =>
-      option.city.toLowerCase().includes(inputValue.toLowerCase())
-    );
+    if (!inputValue) return [];
+    return (options.filter((option) =>
+      (option.city + option.code).toLowerCase().includes(inputValue.toLowerCase())
+    ));
   };
+
 
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -119,6 +118,28 @@ function Home() {
     setOpenModalIndex(null);
   };
 
+  // 🔹 Fetch cities from backend
+  useEffect(() => {
+    axios
+      .get("http://localhost:8080/api/cities")
+      .then((res) => {
+        const mappedCities = res.data
+          .filter((c) => c.status === "LIVE")
+          .map((city) => ({
+            id: city.cityId,
+            city: city.cityName,
+            code: city.cityCode,
+            parentCityId: city.parentCityId,
+          }));
+
+        setCityOptions(mappedCities);
+        console.log(mappedCities);
+      })
+      .catch((err) => {
+        console.error("Error fetching cities", err);
+      });
+  }, []);
+
   return (
     <Box>
       {/* Bus Background Section */}
@@ -147,7 +168,7 @@ function Home() {
               <Autocomplete
                 options={cityOptions}
                 value={from}
-                getOptionLabel={(option) => option.city}
+                getOptionLabel={(option) => (option.city + ' - ' + option.code)}
                 filterOptions={filterCities}
                 onChange={(e, newValue) => setFrom(newValue)}
                 popupIcon={null} // <-- This removes the dropdown arrow icon
