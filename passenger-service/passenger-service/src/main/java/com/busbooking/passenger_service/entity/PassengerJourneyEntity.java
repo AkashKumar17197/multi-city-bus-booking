@@ -14,14 +14,17 @@ public class PassengerJourneyEntity {
     @Column(name = "sa_id", nullable = false)
     private Long saId;
 
-    @Column(name = "pass_id", nullable = false)
-    private Long passId;
-
     @Column(name = "seat_no", nullable = false)
     private String seatNo;
 
-    // ---------- getters & setters ----------
+    // ❌ REMOVE this field completely
+    // private Long passId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pass_id", nullable = false)
+    private PassengerListEntity passengerList;
+
+    // getters & setters
     public Long getPjId() {
         return pjId;
     }
@@ -38,19 +41,19 @@ public class PassengerJourneyEntity {
         this.saId = saId;
     }
 
-    public Long getPassId() {
-        return passId;
-    }
-
-    public void setPassId(Long passId) {
-        this.passId = passId;
-    }
-
     public String getSeatNo() {
         return seatNo;
     }
 
     public void setSeatNo(String seatNo) {
         this.seatNo = seatNo;
+    }
+
+    public PassengerListEntity getPassengerList() {
+        return passengerList;
+    }
+
+    public void setPassengerList(PassengerListEntity passengerList) {
+        this.passengerList = passengerList;
     }
 }

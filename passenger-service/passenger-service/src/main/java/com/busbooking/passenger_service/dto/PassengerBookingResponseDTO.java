@@ -9,6 +9,8 @@ public class PassengerBookingResponseDTO {
     private String pnrNumber;
     private String phoneNumber;
     private String emailId;
+    private Long originCityId;
+    private Long destinationCityId;
     private String status;
 
     private LocalDateTime createdDate;
@@ -53,6 +55,22 @@ public class PassengerBookingResponseDTO {
 
     public void setEmailId(String emailId) {
         this.emailId = emailId;
+    }
+
+    public Long getOriginCityId() {
+        return originCityId;
+    }
+
+    public void setOriginCityId(Long originCityId) {
+        this.originCityId = originCityId;
+    }
+
+    public Long getDestinationCityId() {
+        return destinationCityId;
+    }
+
+    public void setDestinationCityId(Long destinationCityId) {
+        this.destinationCityId = destinationCityId;
     }
 
     public String getStatus() {

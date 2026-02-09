@@ -31,87 +31,113 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
         this.passengerJourneyRepository = passengerJourneyRepository;
     }
 
-    // ---------------- CREATE BOOKING ----------------
     @Override
     public PassengerBookingResponseDTO createBooking(PassengerBookingRequestDTO request) {
 
-        // 1️⃣ Create PNR
+        // 1️⃣ Create PNR entity
         PassengerEntity passengerEntity = new PassengerEntity();
         passengerEntity.setPnrNumber(generatePnr());
         passengerEntity.setPhoneNumber(request.getPhoneNumber());
         passengerEntity.setEmailId(request.getEmailId());
+        passengerEntity.setOriginCityId(request.getOriginCityId());
+        passengerEntity.setDestinationCityId(request.getDestinationCityId());
         passengerEntity.setStatus("LIVE");
         passengerEntity.setCreatedBy(request.getCreatedBy());
         passengerEntity.setCreatedDate(LocalDateTime.now());
 
-        passengerEntity = passengerRepository.save(passengerEntity);
-
-        // 2️⃣ Save passengers
-        List<PassengerResponseDTO> passengerResponses = new ArrayList<>();
+        // 2️⃣ Create passenger list
+        List<PassengerListEntity> passengerList = new ArrayList<>();
         for (PassengerInfoDTO dto : request.getPassengers()) {
-
             PassengerListEntity pl = new PassengerListEntity();
-            pl.setPnrId(passengerEntity.getPnrId());
             pl.setPassengerName(dto.getPassengerName());
             pl.setAge(dto.getAge());
             pl.setGender(dto.getGender());
+            pl.setPassenger(passengerEntity); // ✅ owns pnr_id
+            passengerList.add(pl);
+        }
+        passengerEntity.setPassengerList(passengerList);
 
-            pl = passengersListRepository.save(pl);
+        // 3️⃣ Save PNR + passengers (cascade generates passId)
+        passengerEntity = passengerRepository.save(passengerEntity);
 
-            PassengerResponseDTO pr = new PassengerResponseDTO();
-            pr.setPassId(pl.getPassId());
-            pr.setPnrId(passengerEntity.getPnrId());
-            pr.setPassengerName(pl.getPassengerName());
-            pr.setAge(pl.getAge());
-            pr.setGender(pl.getGender());
-
-            passengerResponses.add(pr);
+        // 4️⃣ Map index → PassengerListEntity
+        Map<Integer, PassengerListEntity> passengerIndexMap = new HashMap<>();
+        for (int i = 0; i < passengerEntity.getPassengerList().size(); i++) {
+            passengerIndexMap.put(i, passengerEntity.getPassengerList().get(i));
         }
 
-        // 3️⃣ Save journeys
-        List<JourneyResponseDTO> journeyResponses = new ArrayList<>();
+        // 5️⃣ Create journeys (seat allocations)
+        if (request.getJourneys() != null) {
+            for (JourneySeatRequestDTO journeyDTO : request.getJourneys()) {
 
-        for (JourneySeatRequestDTO journey : request.getJourneys()) {
+                if (journeyDTO.getSeats() == null) continue;
 
-            JourneyResponseDTO jr = new JourneyResponseDTO();
-            jr.setSaId(journey.getSaId());
+                for (int s = 0; s < journeyDTO.getSeats().size(); s++) {
+                    SeatPassengerDTO seatDTO = journeyDTO.getSeats().get(s);
 
-            List<SeatJourneyResponseDTO> seatResponses = new ArrayList<>();
-
-            if (journey.getSeats() != null) {
-                for (SeatPassengerDTO seat : journey.getSeats()) {
+                    PassengerListEntity passenger = passengerIndexMap.get(s);
+                    if (passenger == null) continue;
 
                     PassengerJourneyEntity pj = new PassengerJourneyEntity();
-                    pj.setSaId(journey.getSaId());
-                    pj.setPassId(seat.getPassId());
-                    pj.setSeatNo(seat.getSeatNo());
+                    pj.setSaId(journeyDTO.getSaId());
+                    pj.setSeatNo(seatDTO.getSeatNo());
 
-                    pj = passengerJourneyRepository.save(pj);
+                    // ✅ ONLY relationship sets pass_id
+                    pj.setPassengerList(passenger);
 
-                    SeatJourneyResponseDTO sr = new SeatJourneyResponseDTO();
-                    sr.setPjId(pj.getPjId());
-                    sr.setPassId(pj.getPassId());
-                    sr.setSeatNo(pj.getSeatNo());
-
-                    seatResponses.add(sr);
+                    passenger.getJourneys().add(pj);
                 }
             }
-
-            jr.setPassengers(seatResponses);
-            journeyResponses.add(jr);
         }
 
-        // 4️⃣ Build response
+        // 6️⃣ Save again to persist journeys
+        passengerEntity = passengerRepository.save(passengerEntity);
+
+        // 7️⃣ Extract once (avoids lambda final issue)
+        final Long pnrId = passengerEntity.getPnrId();
+
+        // 8️⃣ Build passenger response
+        List<PassengerResponseDTO> passengerResponses =
+                passengerEntity.getPassengerList().stream()
+                        .map(p -> {
+                            PassengerResponseDTO pr = new PassengerResponseDTO();
+                            pr.setPassId(p.getPassId());
+                            pr.setPnrId(pnrId);
+                            pr.setPassengerName(p.getPassengerName());
+                            pr.setAge(p.getAge());
+                            pr.setGender(p.getGender());
+
+                            List<SeatJourneyResponseDTO> seatResponses =
+                                    p.getJourneys().stream()
+                                            .map(j -> {
+                                                SeatJourneyResponseDTO sr = new SeatJourneyResponseDTO();
+                                                sr.setPjId(j.getPjId());
+
+                                                // ✅ derive passId via relationship
+                                                sr.setPassId(j.getPassengerList().getPassId());
+
+                                                sr.setSeatNo(j.getSeatNo());
+                                                return sr;
+                                            })
+                                            .toList();
+
+                            pr.setSeats(seatResponses);
+                            return pr;
+                        })
+                        .toList();
+
+        // 9️⃣ Final response
         PassengerBookingResponseDTO response = new PassengerBookingResponseDTO();
-        response.setPnrId(passengerEntity.getPnrId());
+        response.setPnrId(pnrId);
         response.setPnrNumber(passengerEntity.getPnrNumber());
         response.setPhoneNumber(passengerEntity.getPhoneNumber());
         response.setEmailId(passengerEntity.getEmailId());
+        response.setOriginCityId(passengerEntity.getOriginCityId());
+        response.setDestinationCityId(passengerEntity.getDestinationCityId());
         response.setStatus(passengerEntity.getStatus());
         response.setCreatedDate(passengerEntity.getCreatedDate());
         response.setCreatedBy(passengerEntity.getCreatedBy());
         response.setPassengers(passengerResponses);
-        response.setJourneys(journeyResponses);
 
         return response;
     }
@@ -126,7 +152,7 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
 
         // 2️⃣ Fetch passengers under this PNR
         List<PassengerListEntity> passengers =
-                passengersListRepository.findByPnrId(pnrId);
+                passengersListRepository.findByPassenger_PnrId(pnrId);
 
         // 3️⃣ Extract passIds
         List<Long> passIds = new ArrayList<>();
@@ -136,14 +162,14 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
 
         // 4️⃣ Fetch journeys using passIds
         List<PassengerJourneyEntity> journeys =
-                passengerJourneyRepository.findByPassIdIn(passIds);
+                passengerJourneyRepository.findByPassengerList_PassIdIn(passIds);
 
         // 5️⃣ Map passengers
         List<PassengerResponseDTO> passengerDTOs = new ArrayList<>();
         for (PassengerListEntity p : passengers) {
             PassengerResponseDTO dto = new PassengerResponseDTO();
             dto.setPassId(p.getPassId());
-            dto.setPnrId(p.getPnrId());
+            //dto.setPnrId(p.set);
             dto.setPassengerName(p.getPassengerName());
             dto.setAge(p.getAge());
             dto.setGender(p.getGender());
@@ -170,7 +196,7 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
             for (PassengerJourneyEntity pj : entry.getValue()) {
                 SeatJourneyResponseDTO sr = new SeatJourneyResponseDTO();
                 sr.setPjId(pj.getPjId());
-                sr.setPassId(pj.getPassId());
+                //sr.setPassId(pj.getPassId());
                 sr.setSeatNo(pj.getSeatNo());
                 seatDTOs.add(sr);
             }
@@ -186,6 +212,8 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
         response.setPhoneNumber(pnr.getPhoneNumber());
         response.setEmailId(pnr.getEmailId());
         response.setStatus(pnr.getStatus());
+        response.setOriginCityId(pnr.getOriginCityId());
+        response.setDestinationCityId(pnr.getDestinationCityId());
         response.setCreatedDate(pnr.getCreatedDate());
         response.setCreatedBy(pnr.getCreatedBy());
         response.setUpdatedDate(pnr.getUpdatedDate());
@@ -209,6 +237,8 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
 
         pnr.setPhoneNumber(request.getPhoneNumber());
         pnr.setEmailId(request.getEmailId());
+        pnr.setOriginCityId(request.getOriginCityId());
+        pnr.setDestinationCityId(request.getDestinationCityId());
         pnr.setUpdatedDate(LocalDateTime.now());
         pnr.setUpdatedBy(request.getCreatedBy());
 
@@ -230,6 +260,7 @@ public class PassengerBookingServiceImpl implements PassengerBookingService {
 
         passengerRepository.save(pnr);
     }
+
 
     // ---------------- UTIL ----------------
     private String generatePnr() {

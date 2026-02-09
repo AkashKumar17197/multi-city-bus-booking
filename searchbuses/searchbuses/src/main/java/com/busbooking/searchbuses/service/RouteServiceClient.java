@@ -63,17 +63,20 @@ public class RouteServiceClient {
                                                     if (stops == null || stops.isEmpty())
                                                         return Flux.empty();
 
+                                                    // ---- collect cityIds ----
                                                     List<Long> cityStops = stops.stream()
                                                             .map(s -> ((Number) s.get("cityIdStop")).longValue())
                                                             .toList();
 
                                                     int fromIndex = -1, toIndex = -1;
+
                                                     for (int i = 0; i < cityStops.size(); i++) {
                                                         if (fromCities.contains(cityStops.get(i))) {
                                                             fromIndex = i;
                                                             break;
                                                         }
                                                     }
+
                                                     if (fromIndex != -1) {
                                                         for (int j = fromIndex + 1; j < cityStops.size(); j++) {
                                                             if (toCities.contains(cityStops.get(j))) {
@@ -82,17 +85,67 @@ public class RouteServiceClient {
                                                             }
                                                         }
                                                     }
+
                                                     if (fromIndex == -1 || toIndex == -1)
                                                         return Flux.empty();
 
+                                                    // ---- distance & fare ----
                                                     double startKm = ((Number) stops.get(fromIndex).get("km")).doubleValue();
                                                     double endKm = ((Number) stops.get(toIndex).get("km")).doubleValue();
+
                                                     String startDuration = (String) stops.get(fromIndex).get("duration");
                                                     String endDuration = (String) stops.get(toIndex).get("duration");
-                                                    String busTypeName = ((String) stops.get(0).get("busTypeName")).trim();
+
+                                                    String busTypeName =
+                                                            ((String) stops.get(0).get("busTypeName")).trim();
 
                                                     Double seaterFarePerKm = getDouble(stops.get(0), "seaterFare");
                                                     Double sleeperFarePerKm = getDouble(stops.get(0), "sleeperFare");
+
+                                                    // ---- FIX 1: collect ALL stops ----
+                                                    List<RouteStopDetail> boardingStops = new ArrayList<>();
+                                                    List<RouteStopDetail> droppingStops = new ArrayList<>();
+
+                                                    for (int i = 0; i < cityStops.size(); i++) {
+                                                        Map<String, Object> stop = stops.get(i);
+                                                        Long cityId =
+                                                                ((Number) stop.get("cityIdStop")).longValue();
+                                                        Long seqId =
+                                                                ((Number) stop.get("rsSeqId")).longValue();
+                                                        String duration =
+                                                                (String) stop.get("duration");
+
+                                                        if (fromCities.contains(cityStops.get(i))) {
+                                                            boardingStops.add(
+                                                                    new RouteStopDetail(cityId, seqId, duration)
+                                                            );
+                                                        }
+                                                        if (toCities.contains(cityStops.get(i))) {
+                                                            droppingStops.add(
+                                                                    new RouteStopDetail(cityId, seqId, duration)
+                                                            );
+                                                        }
+                                                    }
+
+                                                    /*for (int i = fromIndex; i <= toIndex; i++) {
+                                                        Map<String, Object> stop = stops.get(i);
+                                                        Long cityId =
+                                                                ((Number) stop.get("cityIdStop")).longValue();
+                                                        String duration =
+                                                                (String) stop.get("duration");
+
+                                                        if (i < toIndex) {
+                                                            boardingStops.add(
+                                                                    new RouteStopDetail(cityId, duration)
+                                                            );
+                                                        }
+                                                        if (i > fromIndex) {
+                                                            droppingStops.add(
+                                                                    new RouteStopDetail(cityId, duration)
+                                                            );
+                                                        }
+                                                    }*/
+
 
                                                     RouteDetailResponse response =
                                                             new RouteDetailResponse(
@@ -101,14 +154,19 @@ public class RouteServiceClient {
                                                                     startKm,
                                                                     endKm,
                                                                     busTypeName,
-                                                                    seaterFarePerKm == null ? null : seaterFarePerKm * (endKm - startKm),
-                                                                    sleeperFarePerKm == null ? null : sleeperFarePerKm * (endKm - startKm),
+                                                                    seaterFarePerKm == null
+                                                                            ? null
+                                                                            : seaterFarePerKm * (endKm - startKm),
+                                                                    sleeperFarePerKm == null
+                                                                            ? null
+                                                                            : sleeperFarePerKm * (endKm - startKm),
                                                                     startDuration,
                                                                     endDuration,
-                                                                    List.of(new RouteStopDetail(cityStops.get(fromIndex), startDuration)),
-                                                                    List.of(new RouteStopDetail(cityStops.get(toIndex), endDuration))
+                                                                    boardingStops,
+                                                                    droppingStops
                                                             );
 
+                                                    // ---- schedules + seats (unchanged) ----
                                                     return scheduleServiceClient
                                                             .getSchedulesForRoute(routeId, direction)
                                                             .flatMap(schedule ->

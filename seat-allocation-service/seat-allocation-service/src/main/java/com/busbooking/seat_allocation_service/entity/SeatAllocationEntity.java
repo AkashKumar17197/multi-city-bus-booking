@@ -22,11 +22,15 @@ public class SeatAllocationEntity {
     private LocalDate dateOfJourney;
 
     // -------- LOWER DECK --------
-    @Column(name = "lower_deck_layout", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "lower_deck_layout", columnDefinition = "TEXT")
     private String lowerDeckLayout;
 
-    @Column(name = "lower_deck_layout_seats", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "lower_deck_layout_seats", columnDefinition = "TEXT")
     private String lowerDeckLayoutSeats;
+
+    // ✅ NEW
+    @Column(name = "lower_deck_layout_seats_occupied", columnDefinition = "TEXT")
+    private String lowerDeckLayoutSeatsOccupied;
 
     // -------- UPPER DECK --------
     @Column(name = "upper_deck_layout", columnDefinition = "TEXT")
@@ -34,6 +38,10 @@ public class SeatAllocationEntity {
 
     @Column(name = "upper_deck_layout_seats", columnDefinition = "TEXT")
     private String upperDeckLayoutSeats;
+
+    // ✅ NEW
+    @Column(name = "upper_deck_layout_seats_occupied", columnDefinition = "TEXT")
+    private String upperDeckLayoutSeatsOccupied;
 
     // -------- STATUS & AUDIT --------
     @Column(name = "status", nullable = false)
@@ -106,6 +114,14 @@ public class SeatAllocationEntity {
         this.lowerDeckLayoutSeats = lowerDeckLayoutSeats;
     }
 
+    public String getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(String lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
     public String getUpperDeckLayout() {
         return upperDeckLayout;
     }
@@ -120,6 +136,14 @@ public class SeatAllocationEntity {
 
     public void setUpperDeckLayoutSeats(String upperDeckLayoutSeats) {
         this.upperDeckLayoutSeats = upperDeckLayoutSeats;
+    }
+
+    public String getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(String upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
     }
 
     public String getStatus() {

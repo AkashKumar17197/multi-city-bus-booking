@@ -1,5 +1,7 @@
 package com.busbooking.passenger_service.dto;
 
+import java.util.List;
+
 public class PassengerResponseDTO {
 
     private Long passId;
@@ -8,7 +10,10 @@ public class PassengerResponseDTO {
     private Integer age;
     private String gender;
 
-    // Getters & Setters
+    // ✅ ADD THIS: seats for this passenger
+    private List<SeatJourneyResponseDTO> seats;
+
+    // ---------- Getters & Setters ----------
 
     public Long getPassId() {
         return passId;
@@ -48,5 +53,14 @@ public class PassengerResponseDTO {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    // ✅ ADD THESE METHODS
+    public List<SeatJourneyResponseDTO> getSeats() {
+        return seats;
+    }
+
+    public void setSeats(List<SeatJourneyResponseDTO> seats) {
+        this.seats = seats;
     }
 }

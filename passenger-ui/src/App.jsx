@@ -6,6 +6,7 @@ import CancelTicket from "./pages/CancelTicket";
 import FoodOrder from "./pages/FoodOrder";
 import Search from "./pages/Search";
 import Booking from "./pages/Booking";
+import Payment from "./pages/Payment";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -22,6 +23,7 @@ function App() {
           <Route path="/food-order" element={<FoodOrder />} />
           <Route path="/search" element={<Search />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/payment" element={<Payment />} />
         </Routes>
       </Router>
     </LocalizationProvider>

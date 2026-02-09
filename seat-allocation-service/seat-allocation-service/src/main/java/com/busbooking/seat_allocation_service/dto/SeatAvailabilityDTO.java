@@ -12,6 +12,8 @@ public class SeatAvailabilityDTO {
     private List<String> upperDeckLayout;
     private List<String> lowerDeckLayoutSeats;
     private List<String> upperDeckLayoutSeats;
+    private List<String> lowerDeckLayoutSeatsOccupied;
+    private List<String> upperDeckLayoutSeatsOccupied;
     private int seatsLeft;
 
     // Getters & setters
@@ -78,6 +80,22 @@ public class SeatAvailabilityDTO {
 
     public void setSeatsLeft(int seatsLeft) {
         this.seatsLeft = seatsLeft;
+    }
+
+    public List<String> getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(List<String> lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
+    public List<String> getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(List<String> upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
     }
 
 }

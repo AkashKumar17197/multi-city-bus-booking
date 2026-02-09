@@ -16,6 +16,9 @@ public class SeatAllocationResponseDTO {
     private List<String> lowerDeckLayoutSeats;
     private List<String> upperDeckLayoutSeats;
 
+    private List<String> lowerDeckLayoutSeatsOccupied;
+    private List<String> upperDeckLayoutSeatsOccupied;
+
     private String status;
 
     private LocalDateTime createdDate;
@@ -84,6 +87,22 @@ public class SeatAllocationResponseDTO {
 
     public void setUpperDeckLayoutSeats(List<String> upperDeckLayoutSeats) {
         this.upperDeckLayoutSeats = upperDeckLayoutSeats;
+    }
+
+    public List<String> getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(List<String> lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
+    public List<String> getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(List<String> upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
     }
 
     public String getStatus() {

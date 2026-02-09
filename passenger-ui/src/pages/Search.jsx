@@ -142,6 +142,7 @@ function Search() {
       .catch((err) => console.error("Bus search error:", err))
       .finally(() => setLoading(false));
   }, [fromParam, toParam, dateParam]);
+  console.log(buses);
 
   /* ------------------ UI ------------------ */
 
@@ -275,9 +276,15 @@ function Search() {
                       color="success"
                       fullWidth
                       onClick={() =>
-                        navigate("/booking", { state: { bus } })
-                      }
-                    >
+                                 navigate("/booking", {
+                                   state: {
+                                     bus,
+                                     fromCity: from,
+                                     toCity: to,
+                                     journeyDate: dateParam,
+                                   },
+                                 })
+                               }>
                       Book Now
                     </Button>
                   </Grid>

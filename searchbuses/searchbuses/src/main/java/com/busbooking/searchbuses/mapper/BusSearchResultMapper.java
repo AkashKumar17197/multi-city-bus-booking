@@ -92,6 +92,7 @@ public class BusSearchResultMapper {
             list.add(new BoardingDroppingPointDTO(
                     i++,
                     "City-" + s.getCityId(), // later replace with city-name
+                    s.getSeqId(),
                     s.getDuration()
             ));
         }

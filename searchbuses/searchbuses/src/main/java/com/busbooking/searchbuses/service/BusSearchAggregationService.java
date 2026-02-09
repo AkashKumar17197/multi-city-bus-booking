@@ -6,6 +6,7 @@ import com.busbooking.searchbuses.service.RouteServiceClient;
 import com.busbooking.searchbuses.service.SeatAllocationServiceClient;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -33,11 +34,9 @@ public class BusSearchAggregationService {
     public Flux<BusSearchResultDTO> search(
             long fromCityId,
             long toCityId,
-            LocalDate date   // kept for future use
+            LocalDate date
     ) {
-
         return cityServiceClient.getCities(fromCityId, toCityId)
-
                 .flatMapMany(cityResponse ->
                         routeServiceClient.searchRoutes(
                                 new RouteSearchRequest(
@@ -52,22 +51,21 @@ public class BusSearchAggregationService {
                                 )
                         )
                 )
-
-                // Route → Schedule → Seat availability
                 .flatMap(route ->
                         Flux.fromIterable(route.getBusSchedules())
                                 .flatMap(schedule ->
                                         seatClient.getSeatAvailability(schedule.getScheduleId())
                                                 .flatMapMany(Flux::fromIterable)
-                                                .map(seat ->
+                                                .flatMap(seat ->
                                                         buildResult(route, schedule, seat)
                                                 )
                                 )
                 );
     }
 
+
     // 🧠 Build final search DTO
-    private BusSearchResultDTO buildResult(
+    private Mono<BusSearchResultDTO> buildResult(
             RouteDetailResponse route,
             ScheduleSearchResponse schedule,
             SeatAvailabilityDTO seat
@@ -75,19 +73,17 @@ public class BusSearchAggregationService {
 
         BusSearchResultDTO dto = new BusSearchResultDTO();
 
+        LocalTime scheduleDeparture =
+                LocalTime.parse(schedule.getDepartureTime());
+
         double distance = route.getLastKm() - route.getFirstKm();
 
-        LocalTime departure = LocalTime.parse(schedule.getDepartureTime());
-
-        // ✅ FIXED: parse HH:mm safely
-        Duration duration = parseDurationHHmm(route.getLastDuration());
-
-        LocalTime arrival = departure.plus(duration);
-
-        dto.setDeparture(departure.toString());
-        dto.setArrival(arrival.toString());
+        dto.setScheduleId(schedule.getScheduleId());
+        dto.setSaId(seat.getSaId());
         dto.setKm(distance);
         dto.setDistance(distance);
+        dto.setSeaterFare(route.getSeaterFare());
+        dto.setSleeperFare(route.getSleeperFare());
 
         dto.setBusCode(schedule.getScheduleName());
         dto.setRestStops(schedule.getRestStops());
@@ -95,16 +91,41 @@ public class BusSearchAggregationService {
         dto.setAvailableSeats(seat.getSeatsLeft());
         dto.setWindowSeats(countWindowSeats(seat));
 
-        dto.setDuration(formatDuration(duration));
         dto.setType(route.getBusTypeName());
 
         dto.setLowerDeckLayout(seat.getLowerDeckLayout());
         dto.setUpperDeckLayout(seat.getUpperDeckLayout());
+        dto.setLowerDeckLayoutSeats(seat.getLowerDeckLayoutSeats());
+        dto.setUpperDeckLayoutSeats(seat.getUpperDeckLayoutSeats());
+        dto.setLowerDeckLayoutSeatsOccupied(seat.getLowerDeckLayoutSeatsOccupied());
+        dto.setUpperDeckLayoutSeatsOccupied(seat.getUpperDeckLayoutSeatsOccupied());
 
-        dto.setBoardingPoints(buildStops(route.getBoardingPoints()));
-        dto.setDroppingPoints(buildStops(route.getDroppingPoints()));
 
-        return dto;
+        return Mono.zip(
+                buildStops(route.getBoardingPoints(), scheduleDeparture),
+                buildStops(route.getDroppingPoints(), scheduleDeparture)
+        ).map(tuple -> {
+
+            List<BoardingDroppingPointDTO> boarding = tuple.getT1();
+            List<BoardingDroppingPointDTO> dropping = tuple.getT2();
+
+            dto.setBoardingPoints(boarding);
+            dto.setDroppingPoints(dropping);
+
+            // ✅ departure = first boarding point
+            dto.setDeparture(boarding.get(0).getTime());
+
+            // ✅ arrival = last dropping point
+            dto.setArrival(dropping.get(dropping.size() - 1).getTime());
+
+            Duration duration = Duration.between(
+                    LocalTime.parse(dto.getDeparture()),
+                    LocalTime.parse(dto.getArrival())
+            );
+            dto.setDuration(formatDuration(duration));
+
+            return dto;
+        });
     }
 
     // ✅ NEW: HH:mm → Duration
@@ -149,17 +170,41 @@ public class BusSearchAggregationService {
         return h + "h " + m + "m";
     }
 
-    private List<BoardingDroppingPointDTO> buildStops(List<RouteStopDetail> stops) {
-        List<BoardingDroppingPointDTO> list = new ArrayList<>();
-        int i = 1;
+    private Mono<List<BoardingDroppingPointDTO>> buildStops(
+            List<RouteStopDetail> stops,
+            LocalTime scheduleDeparture
+    ) {
+        return Flux.fromIterable(stops)
+                // ✅ SORT BY seqId
+                .sort((a, b) -> Long.compare(a.getSeqId(), b.getSeqId()))
+                .index()
+                .flatMap(tuple -> {
+                    int idx = tuple.getT1().intValue();
+                    RouteStopDetail stop = tuple.getT2();
 
-        for (RouteStopDetail s : stops) {
-            list.add(new BoardingDroppingPointDTO(
-                    i++,
-                    "City-" + s.getCityId(), // replace later with City Service
-                    s.getDuration()
-            ));
-        }
-        return list;
+                    LocalTime stopTime =
+                            calculateStopTime(scheduleDeparture, stop.getDuration());
+
+                    return cityServiceClient.getCityName(stop.getCityId())
+                            .map(cityName ->
+                                    new BoardingDroppingPointDTO(
+                                            idx + 1,            // display order
+                                            cityName,
+                                            stop.getSeqId(),    // real route sequence
+                                            stopTime.toString()
+                                    )
+                            );
+                })
+                .collectList();
     }
+
+    private LocalTime calculateStopTime(
+            LocalTime departure,
+            String durationHHmm
+    ) {
+        Duration d = parseDurationHHmm(durationHHmm);
+        return departure.plus(d);
+    }
+
+
 }

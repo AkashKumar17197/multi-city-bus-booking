@@ -48,4 +48,5 @@ public class PassengerController {
         passengerService.deleteBooking(pnrId);
         return ResponseEntity.noContent().build();
     }
+
 }

@@ -8,11 +8,14 @@ import java.util.List;
 
 public interface PassengerJourneyRepository extends JpaRepository<PassengerJourneyEntity, Long> {
 
-    List<PassengerJourneyEntity> findBySaId(Long saId);
+    //List<PassengerJourneyEntity> findBySaId(Long saId);
 
-    List<PassengerJourneyEntity> findByPassId(Long passId);
+    //List<PassengerJourneyEntity> findByPassId(Long passId);
 
-    List<PassengerJourneyEntity> findBySaIdAndPassId(Long saId, Long passId);
+    //List<PassengerJourneyEntity> findBySaIdAndPassId(Long saId, Long passId);
 
-    List<PassengerJourneyEntity> findByPassIdIn(List<Long> passIds);
+    List<PassengerJourneyEntity> findByPassengerList_PassIdIn(List<Long> passIds);
+
+    List<PassengerJourneyEntity>
+    findBySaIdAndPassengerList_PassId(Long saId, Long passId);
 }

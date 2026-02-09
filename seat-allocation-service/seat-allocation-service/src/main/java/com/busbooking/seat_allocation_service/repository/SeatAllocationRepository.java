@@ -27,8 +27,10 @@ public interface SeatAllocationRepository
            sas.dateOfJourney, 
            sas.lowerDeckLayout, 
            sas.lowerDeckLayoutSeats, 
+           sas.lowerDeckLayoutSeatsOccupied, 
            sas.upperDeckLayout, 
            sas.upperDeckLayoutSeats, 
+           sas.upperDeckLayoutSeatsOccupied,
            (40 - COUNT(sp.spId)) AS seatsLeft
     FROM SeatAllocationEntity sas
     LEFT JOIN sas.passengerSeats sp

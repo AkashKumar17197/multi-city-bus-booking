@@ -7,6 +7,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CityServiceClient {
@@ -33,5 +34,13 @@ public class CityServiceClient {
                 )
                 .retrieve()
                 .bodyToMono(CityResponse.class);
+    }
+
+    public Mono<String> getCityName(Long cityId) {
+        return webClient.get()
+                .uri("/api/cities/{id}", cityId)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(m -> (String) m.get("cityName"));
     }
 }

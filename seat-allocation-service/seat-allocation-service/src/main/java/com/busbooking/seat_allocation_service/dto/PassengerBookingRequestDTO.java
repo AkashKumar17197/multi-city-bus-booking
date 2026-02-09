@@ -1,4 +1,4 @@
-package com.busbooking.passenger_service.dto;
+package com.busbooking.seat_allocation_service.dto;
 
 import java.util.List;
 
@@ -6,12 +6,11 @@ public class PassengerBookingRequestDTO {
 
     private String phoneNumber;
     private String emailId;
-    private Long originCityId;
-    private Long destinationCityId;
     private String createdBy;
     private List<PassengerInfoDTO> passengers;
     private List<JourneySeatRequestDTO> journeys;
 
+    // Getters & Setters
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -27,23 +26,6 @@ public class PassengerBookingRequestDTO {
     public void setEmailId(String emailId) {
         this.emailId = emailId;
     }
-
-    public Long getOriginCityId() {
-        return originCityId;
-    }
-
-    public void setOriginCityId(Long originCityId) {
-        this.originCityId = originCityId;
-    }
-
-    public Long getDestinationCityId() {
-        return destinationCityId;
-    }
-
-    public void setDestinationCityId(Long destinationCityId) {
-        this.destinationCityId = destinationCityId;
-    }
-
 
     public String getCreatedBy() {
         return createdBy;

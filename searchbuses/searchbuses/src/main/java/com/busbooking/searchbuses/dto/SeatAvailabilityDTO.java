@@ -10,8 +10,12 @@ public class SeatAvailabilityDTO {
     private LocalDate dateOfJourney;
     private List<String> lowerDeckLayout;
     private List<String> lowerDeckLayoutSeats;
+    private List<String> lowerDeckLayoutSeatsOccupied;
     private List<String> upperDeckLayout;
     private List<String> upperDeckLayoutSeats;
+
+    private List<String> upperDeckLayoutSeatsOccupied;
+
     private Integer seatsLeft;
 
     public SeatAvailabilityDTO() {}
@@ -37,6 +41,14 @@ public class SeatAvailabilityDTO {
         this.lowerDeckLayoutSeats = lowerDeckLayoutSeats;
     }
 
+    public List<String> getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(List<String> lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
     public List<String> getUpperDeckLayout() { return upperDeckLayout; }
     public void setUpperDeckLayout(List<String> upperDeckLayout) {
         this.upperDeckLayout = upperDeckLayout;
@@ -47,6 +59,18 @@ public class SeatAvailabilityDTO {
         this.upperDeckLayoutSeats = upperDeckLayoutSeats;
     }
 
+    public List<String> getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(List<String> upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
+    }
+
     public Integer getSeatsLeft() { return seatsLeft; }
     public void setSeatsLeft(Integer seatsLeft) { this.seatsLeft = seatsLeft; }
+
+
+
+
 }

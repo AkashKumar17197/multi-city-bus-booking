@@ -14,6 +14,9 @@ public class SeatAllocationCreateRequestDTO {
     private List<String> lowerDeckLayoutSeats;
     private List<String> upperDeckLayoutSeats;
 
+    private List<String> lowerDeckLayoutSeatsOccupied;
+    private List<String> upperDeckLayoutSeatsOccupied;
+
     public SeatAllocationCreateRequestDTO() {
     }
 
@@ -63,5 +66,21 @@ public class SeatAllocationCreateRequestDTO {
 
     public void setUpperDeckLayoutSeats(List<String> upperDeckLayoutSeats) {
         this.upperDeckLayoutSeats = upperDeckLayoutSeats;
+    }
+
+    public List<String> getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(List<String> lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
+    public List<String> getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(List<String> upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
     }
 }

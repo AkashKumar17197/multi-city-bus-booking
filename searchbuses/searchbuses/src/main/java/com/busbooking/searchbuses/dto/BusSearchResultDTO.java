@@ -4,6 +4,8 @@ import java.util.List;
 
 public class BusSearchResultDTO {
 
+    private Long scheduleId;
+    private Long saId;
     private String departure;
     private String arrival;
     private double km;
@@ -12,16 +14,43 @@ public class BusSearchResultDTO {
     private int availableSeats;
     private int windowSeats;
     private double distance;
+
+
+
+    private Double seaterFare;
+    private Double sleeperFare;
     private String duration;
     private String type;
 
     private List<String> lowerDeckLayout;
     private List<String> upperDeckLayout;
 
+    private List<String> lowerDeckLayoutSeats;
+    private List<String> upperDeckLayoutSeats;
+
+    private List<String> lowerDeckLayoutSeatsOccupied;
+    private List<String> upperDeckLayoutSeatsOccupied;
+
     private List<BoardingDroppingPointDTO> boardingPoints;
     private List<BoardingDroppingPointDTO> droppingPoints;
 
     // getters & setters
+    public Long getScheduleId() {
+        return scheduleId;
+    }
+
+    public void setScheduleId(Long scheduleId) {
+        this.scheduleId = scheduleId;
+    }
+
+    public Long getSaId() {
+        return saId;
+    }
+
+    public void setSaId(Long saId) {
+        this.saId = saId;
+    }
+
     public String getDeparture() { return departure; }
     public void setDeparture(String departure) { this.departure = departure; }
 
@@ -46,6 +75,22 @@ public class BusSearchResultDTO {
     public double getDistance() { return distance; }
     public void setDistance(double distance) { this.distance = distance; }
 
+    public Double getSeaterFare() {
+        return seaterFare;
+    }
+
+    public void setSeaterFare(Double seaterFare) {
+        this.seaterFare = seaterFare;
+    }
+
+    public Double getSleeperFare() {
+        return sleeperFare;
+    }
+
+    public void setSleeperFare(Double sleeperFare) {
+        this.sleeperFare = sleeperFare;
+    }
+
     public String getDuration() { return duration; }
     public void setDuration(String duration) { this.duration = duration; }
 
@@ -60,6 +105,38 @@ public class BusSearchResultDTO {
     public List<String> getUpperDeckLayout() { return upperDeckLayout; }
     public void setUpperDeckLayout(List<String> upperDeckLayout) {
         this.upperDeckLayout = upperDeckLayout;
+    }
+
+    public List<String> getLowerDeckLayoutSeats() {
+        return lowerDeckLayoutSeats;
+    }
+
+    public void setLowerDeckLayoutSeats(List<String> lowerDeckLayoutSeats) {
+        this.lowerDeckLayoutSeats = lowerDeckLayoutSeats;
+    }
+
+    public List<String> getUpperDeckLayoutSeats() {
+        return upperDeckLayoutSeats;
+    }
+
+    public void setUpperDeckLayoutSeats(List<String> upperDeckLayoutSeats) {
+        this.upperDeckLayoutSeats = upperDeckLayoutSeats;
+    }
+
+    public List<String> getLowerDeckLayoutSeatsOccupied() {
+        return lowerDeckLayoutSeatsOccupied;
+    }
+
+    public void setLowerDeckLayoutSeatsOccupied(List<String> lowerDeckLayoutSeatsOccupied) {
+        this.lowerDeckLayoutSeatsOccupied = lowerDeckLayoutSeatsOccupied;
+    }
+
+    public List<String> getUpperDeckLayoutSeatsOccupied() {
+        return upperDeckLayoutSeatsOccupied;
+    }
+
+    public void setUpperDeckLayoutSeatsOccupied(List<String> upperDeckLayoutSeatsOccupied) {
+        this.upperDeckLayoutSeatsOccupied = upperDeckLayoutSeatsOccupied;
     }
 
     public List<BoardingDroppingPointDTO> getBoardingPoints() { return boardingPoints; }
