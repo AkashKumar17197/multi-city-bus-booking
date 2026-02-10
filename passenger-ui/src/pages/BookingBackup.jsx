@@ -12,7 +12,6 @@ import {
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
 function Booking() {
   const location = useLocation();
@@ -71,32 +70,6 @@ function Booking() {
     setContact((prev) => ({ ...prev, [field]: value }));
   };
 
-  /*************************************************** */
-  
-  const buildBackendPayload = () => ({
-  busCode: busData.busCode,
-
-  seats: selectedSeats.map((s) => ({
-    seatNo: s.seatNo,
-    type: s.type,
-  })),
-
-  passengers: passengers.map((p) => ({
-    seatNo: p.seatNumber,
-    seatType: p.seatType,
-    fullName: p.fullName,
-    age: p.age,
-    gender: p.gender,
-  })),
-
-  contact,
-
-  boardingPoint,
-  droppingPoint,
-
-  totalFare,
-});
-
   /* ---------------- Seat Rendering ---------------- */
 
   const renderSeatBox = (type, seatNo, occupancy) => {
@@ -128,7 +101,6 @@ function Booking() {
   }
   return sum;
 }, 0);
-
 
   return (
     <Box
@@ -202,27 +174,23 @@ const totalFare = selectedSeats.reduce((sum, seat) => {
 
   /* ---------------- Book Handler ---------------- */
 
-  const handleBooking = async () => {
-  const payload = buildBackendPayload();
-
-  try {
-    const response = await axios.post(
-      `http://localhost:8086/api/seat-allocations/${busData.saId}/book-bulk`,
-      payload
-    );
-
-    console.log("BOOKING SUCCESS 👉", response.data);
-
-    alert("✅ Booking Successful");
-    navigate("/"); // HOME PAGE
-
-  } catch (error) {
-    console.error("BOOKING FAILED ❌", error);
-
-    alert("❌ Booking Failed");
-    navigate("/search"); // SEARCH PAGE
-  }
+  const handleBooking = () => {
+    const bookingPayload = {
+  saId: busData.saId,
+  busCode: busData.busCode,
+  seats: selectedSeats,
+  passengers,
+  contact,
+  boardingPoint,
+  droppingPoint,
+  totalFare,
 };
+
+    console.log("BOOKING PAYLOAD 👉", bookingPayload);
+    alert("Booking initiated! Check console.");
+    navigate("/payment", { state: bookingPayload });
+    
+  };
 
   /* ---------------- UI ---------------- */
 
